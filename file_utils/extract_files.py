@@ -32,11 +32,11 @@ def move(destination, source):
 
     if os.path.isfile(destination / source.name):
 
-        source.rename(source.with_name(source.stem + '_' + source.suffix))
+        source = source.rename(source.with_name(source.stem + '_' + source.suffix))
 
         move(destination, source)
 
-    elif os.path.exists(destination / source.name):
+    elif os.path.exists(destination / source.name) and os.path.isdir(destination / source.name):
         # This means there is a folder with the same name in the destination
         # folder, so we need to move the subfiles inside the existing folder
         for subelement in source.iterdir():
