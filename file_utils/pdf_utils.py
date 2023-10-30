@@ -1,4 +1,6 @@
-import PyPDF2
+import PyPDF3 as pdf
+import re
+from pathlib import Path
 
 
 def extract_pdf_pages(input_file, output_file="", start_page=1, end_page=0):
@@ -26,7 +28,7 @@ def extract_pdf_pages(input_file, output_file="", start_page=1, end_page=0):
     try:
         # Create a PDF reader object
         with open(input_file, "rb") as file:
-            pdf_reader = PyPDF2.PdfFileReader(file)
+            pdf_reader = pdf.PdfFileReader(file)
 
             if end_page == 0:
                 end_page = pdf_reader.numPages
@@ -37,7 +39,7 @@ def extract_pdf_pages(input_file, output_file="", start_page=1, end_page=0):
                 return False
 
             # Create a PDF writer object
-            pdf_writer = PyPDF2.PdfFileWriter()
+            pdf_writer = pdf.PdfFileWriter()
 
             # Add selected pages to the writer
             for page_num in range(start_page - 1, end_page):
@@ -54,6 +56,32 @@ def extract_pdf_pages(input_file, output_file="", start_page=1, end_page=0):
     except Exception as e:
         print("An error occurred:", str(e))
         return False
+
+
+def rename_pdfs(path, naming_pattern, num_groups=1):
+    # Get the list of files in the directory
+    root = Path(path)
+    # Loop through the files
+    for element in root.iterdir():
+        # Check if the file is a directory
+        if element.suffix == '.pdf':
+            rename_pdf(element, pattern=naming_pattern, num_groups=num_groups)
+
+
+def rename_pdf(file_path, pattern, num_groups=1):
+    # The regex pattern and the groups to be used in the file name
+    with open(file_path, 'rb') as pdf_file:
+        pdf_reader = pdf.PdfFileReader(pdf_file)
+        first_page = pdf_reader.getPage(0)
+        text = first_page.extractText()
+
+    # Only the first match is considered
+    match = re.search(pattern, text)
+    new_name = ''
+    for group in range(1, num_groups + 1):
+        new_name += match.group(group) + '_'
+    new_name = new_name[:-1] + '.pdf'
+    file_path.rename(file_path.with_name(new_name))
 
 
 if __name__ == "__main__":
